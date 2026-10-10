@@ -1,0 +1,231 @@
+openapi: 3.0.3
+info:
+  title: Cosmo Cats Intergalactic Marketplace API
+  version: 1.0.0
+  description: Product catalog API for the Cosmo Cats marketplace.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/products:
+    get:
+      summary: List products
+      operationId: getProducts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: A page of products.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedProductResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      summary: Create a product
+      operationId: createProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Product created.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/products/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    get:
+      summary: Get a product
+      operationId: getProduct
+      responses:
+        '200':
+          description: Product details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      summary: Replace a product
+      operationId: updateProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      responses:
+        '200':
+          description: Product updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      summary: Delete a product
+      operationId: deleteProduct
+      responses:
+        '204':
+          description: Product deleted.
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 20
+    ProductId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    ValidationError:
+      description: RFC 9457 validation problem.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    NotFoundError:
+      description: RFC 9457 not-found problem.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+  schemas:
+    ProductCreateRequest:
+      type: object
+      required: [name, description, price, categoryId, stock]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 120
+          description: Must contain star, galaxy, comet, nebula, cosmo, or orbit.
+          example: Anti-gravity star yarn
+        description:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        price:
+          type: number
+          format: double
+          minimum: 0.01
+          exclusiveMinimum: false
+        categoryId:
+          type: string
+          format: uuid
+        stock:
+          type: integer
+          format: int32
+          minimum: 1
+    ProductUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/ProductCreateRequest'
+    ProductResponse:
+      type: object
+      required: [id, name, description, price, category, stock, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        category:
+          $ref: '#/components/schemas/CategoryResponse'
+        stock:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    CategoryResponse:
+      type: object
+      required: [id, name, code]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+    PagedProductResponse:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          minimum: 0
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
