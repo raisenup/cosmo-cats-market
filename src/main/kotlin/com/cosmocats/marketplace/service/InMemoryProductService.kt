@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class InMemoryProductService(
-    private val mapper: ProductMapper = ProductMapper()
+    private val mapper: ProductMapper
 ) : ProductService {
     private val products = ConcurrentHashMap<UUID, Product>()
     private val categories = listOf(
