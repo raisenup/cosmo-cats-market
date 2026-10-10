@@ -72,6 +72,18 @@ class GlobalExceptionHandler {
         instance = request.requestURI
     )
 
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgument(
+        exception: IllegalArgumentException,
+        request: HttpServletRequest
+    ): ResponseEntity<ProblemDetails> = problem(
+        type = "https://cosmo-cats.market/errors/validation",
+        title = "Validation failed",
+        status = HttpStatus.BAD_REQUEST,
+        detail = exception.message ?: "Request contains an invalid value.",
+        instance = request.requestURI
+    )
+
     private fun problem(
         type: String,
         title: String,
