@@ -10,6 +10,19 @@ plugins {
 group = "com.cosmocats"
 version = "0.0.1-SNAPSHOT"
 
+extra["filesExcludedFromCoverage"] = listOf(
+	"**/CosmoCatsApiApplication*",
+	"**/dto/**",
+	"**/domain/**",
+	"**/ProductMapper*",
+	"**/GlobalExceptionHandler*",
+	"**/integration/**"
+)
+extra["minimumCoveragePerFile"] = 0.60
+
+apply(from = "gradle/test.gradle")
+apply(from = "gradle/jacoco.gradle")
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
